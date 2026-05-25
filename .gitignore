@@ -1,0 +1,33 @@
+# Environment files
+.env
+.env.*
+
+# Keep example env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Data outputs
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Local databases / volumes
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+metabase_data/
+n8n_data/
+
+# OS / editor
+.DS_Store
+.vscode/
+
+# Dev Notes
+notes.txt   
