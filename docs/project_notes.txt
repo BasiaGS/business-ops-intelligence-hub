@@ -1,0 +1,343 @@
+# Business Intelligence Automation Portfolio
+
+## Core Stack
+
+* n8n — workflow orchestration
+* Postgres — structured data storage
+* Metabase — business dashboards
+* Vector database — semantic search and document context
+* AI assistant — natural-language insight layer
+
+## Business Domain
+
+Demo business: EcoHome Supplies
+
+A small e-commerce company selling sustainable home products.
+
+The project uses realistic demo data such as:
+
+* orders
+* customers
+* products
+* competitor prices
+* customer feedback
+* product descriptions
+
+## Portfolio Goals
+
+This project demonstrates:
+
+* data ingestion
+* data cleaning
+* workflow automation
+* database modeling
+* BI dashboarding
+* self-hosted architecture
+* security-aware design
+* separation of raw, cleaned, and reporting data
+* AI-ready vector search architecture
+
+## Architecture
+
+```text
+[CSV / Sheets / CRM exports]
+          ↓
+[n8n workflow]
+          ↓
+[Postgres database]
+          ↓
+[Metabase dashboards]
+          ↓
+[Business decisions]
+```
+
+AI extension:
+
+```text
+[Feedback / documents / product text]
+          ↓
+[n8n or script-based ingestion]
+          ↓
+[Vector database]
+          ↓
+[AI assistant]
+```
+
+## Security Principles
+
+* raw data is separated from cleaned data
+* dashboards read only from reporting views
+* database users follow least privilege
+* secrets are stored in environment variables
+* local data outputs are not committed to Git
+* synthetic demo data is used for portfolio presentation
+
+````
+
+---
+
+## Step 4 — First commit
+
+Check status:
+
+```bash
+git status
+````
+
+Stage and commit:
+
+```bash
+git add .
+git commit -m "Initialize business intelligence automation project structure"
+```
+
+---
+
+## What we are building next
+
+Next step will be:
+
+```text
+Docker Compose foundation:
+- Postgres
+- n8n
+- Metabase
+```
+
+But before that, this repo structure gives us a clean foundation:
+
+```text
+db/        → database schema, views, queries
+n8n/       → workflow exports and notes
+metabase/  → dashboard documentation
+vector/    → vector database setup later
+ai_assistant/ → natural-language layer later
+data/      → demo/source data
+docs/      → architecture and security explanation
+```
+
+Start with the commands above. After `git commit` succeeds, send me your `tree -L 3` and `git status`, and we’ll add the Docker stack.
+
+## DB Structure & Docs Structure Explanation
+I structured it this way to make the repo read like a **real data/BI project**, not just a pile of files.
+
+## `db/`
+
+This folder holds everything related to the **Postgres database layer**.
+
+```text
+db/
+├── init/
+├── queries/
+└── views/
+```
+
+### `db/init/`
+
+This is for SQL files that create the database foundation.
+
+It will hold things like:
+
+```text
+01_create_schemas.sql
+02_create_raw_tables.sql
+03_create_clean_tables.sql
+04_create_reporting_tables.sql
+```
+
+Purpose:
+
+```text
+“When the database starts, what tables and schemas should exist?”
+```
+
+Example:
+
+```sql
+CREATE TABLE clean_orders (
+    order_id TEXT PRIMARY KEY,
+    customer_id TEXT,
+    order_date DATE,
+    product_id TEXT,
+    quantity INTEGER,
+    revenue NUMERIC
+);
+```
+
+---
+
+### `db/queries/`
+
+This is for useful analysis queries.
+
+It will hold SQL like:
+
+```text
+monthly_revenue.sql
+top_products.sql
+repeat_customers.sql
+competitor_price_gap.sql
+```
+
+Purpose:
+
+```text
+“What questions do we want to ask the data?”
+```
+
+Example:
+
+```sql
+SELECT
+    DATE_TRUNC('month', order_date) AS month,
+    SUM(revenue) AS total_revenue
+FROM clean_orders
+GROUP BY month
+ORDER BY month;
+```
+
+These can later become Metabase questions or dashboard tiles.
+
+---
+
+### `db/views/`
+
+This is for SQL views prepared for Metabase.
+
+It will hold files like:
+
+```text
+sales_dashboard_view.sql
+customer_summary_view.sql
+competitor_price_view.sql
+```
+
+Purpose:
+
+```text
+“What safe, ready-to-use data should Metabase see?”
+```
+
+A view is like a saved SQL table that Metabase can read from.
+
+Example:
+
+```sql
+CREATE VIEW sales_dashboard_view AS
+SELECT
+    order_date,
+    product_category,
+    revenue,
+    quantity
+FROM clean_orders;
+```
+
+Important security idea:
+
+```text
+Metabase should read views, not raw tables.
+```
+
+That helps you control what dashboard users can see.
+
+---
+
+## `docs/`
+
+This folder holds the **explanation layer** of the project.
+
+```text
+docs/
+├── architecture/
+├── screenshots/
+└── security/
+```
+
+### `docs/architecture/`
+
+This is where you explain how the system works.
+
+It will hold files like:
+
+```text
+system_overview.md
+data_flow.md
+workflow_orchestration.md
+```
+
+Purpose:
+
+```text
+“How does the whole system fit together?”
+```
+
+Example content:
+
+```text
+CSV files are ingested by n8n, cleaned, loaded into Postgres, and visualized in Metabase.
+```
+
+This is important for portfolio review because employers need to understand your design decisions.
+
+---
+
+### `docs/screenshots/`
+
+This is for visual proof.
+
+It will hold screenshots like:
+
+```text
+n8n_workflow.png
+postgres_tables.png
+metabase_dashboard.png
+ai_assistant_demo.png
+```
+
+Purpose:
+
+```text
+“Show that the system actually works.”
+```
+
+For your README, these screenshots will be very useful.
+
+---
+
+### `docs/security/`
+
+This is where you document the safety/governance thinking.
+
+It will hold files like:
+
+```text
+security_model.md
+data_access_model.md
+secrets_and_environment.md
+raw_vs_clean_data.md
+```
+
+Purpose:
+
+```text
+“How is the data protected?”
+```
+
+Example topics:
+
+```text
+- raw data is separated from clean data
+- Metabase only reads reporting views
+- secrets are not committed to Git
+- database users should follow least privilege
+- synthetic data is used for demo purposes
+```
+
+This matters because the project is not only “I made dashboards.”
+It becomes:
+
+```text
+I designed a secure small-business data workflow.
+```
+
+That is much stronger for your portfolio.
