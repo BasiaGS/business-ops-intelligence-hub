@@ -1,6 +1,7 @@
-# Environment files
+# Local Docker/runtime files / Environment files
 .env
 .env.*
+*.log
 
 # Keep example env
 !.env.example
@@ -30,4 +31,4 @@ n8n_data/
 .vscode/
 
 # Dev Notes
-notes.txt   
+project_notes.txt   

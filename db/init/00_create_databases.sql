@@ -1,0 +1,3 @@
+CREATE DATABASE business_ops;
+CREATE DATABASE n8n_app;
+CREATE DATABASE metabase_app;

@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: business_ops_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DEFAULT_DB}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - business_ops_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_ADMIN_USER} -d ${POSTGRES_DEFAULT_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: business_ops_n8n
+    restart: unless-stopped
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${N8N_DB_NAME}
+      DB_POSTGRESDB_USER: ${POSTGRES_ADMIN_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+
+      GENERIC_TIMEZONE: Europe/Warsaw
+      TZ: Europe/Warsaw
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - business_ops_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: business_ops_metabase
+    restart: unless-stopped
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${METABASE_DB_NAME}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_ADMIN_USER}
+      MB_DB_PASS: ${POSTGRES_ADMIN_PASSWORD}
+      MB_DB_HOST: postgres
+      JAVA_TIMEZONE: Europe/Warsaw
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - business_ops_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  n8n_data:
+
+networks:
+  business_ops_network:
+    driver: bridge
