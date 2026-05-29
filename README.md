@@ -24,3 +24,5 @@ Source data → n8n → Postgres → Metabase → Business decisions
 
 Later extension:
 Documents / feedback / product text → Vector database → AI assistant
+
+
