@@ -379,6 +379,40 @@ A fresh n8n import may preserve workflow structure and node settings, but creden
 
 Before committing exported n8n workflow JSON, run these checks:
 
+### Automated Workflow Secret-Check
+
+```bash
+bash scripts/check_workflow_secrets.sh
+```
+
+Or, if the script is executable:
+
+```bash
+./scripts/check_workflow_secrets.sh
+```
+
+Run this check after exporting or updating any n8n workflow JSON.
+
+The script checks that:
+
+```text
+n8n/workflows exists
+local-dev-secret is not present in exported workflow files
+POSTGRES_ADMIN_PASSWORD is not present in exported workflow files
+POSTGRES_ADMIN_USER is not present in exported workflow files
+WEBHOOK_SECRET is referenced through the expected environment-variable pattern or safe documentation text
+```
+
+The exported workflow should reference:
+
+```javascript
+$env.WEBHOOK_SECRET
+```
+
+It should not contain the real local secret value.
+
+### Manual Fallback Secret-Check (in case script is not working)
+
 ```bash
 grep -R "local-dev-secret" -n n8n/workflows
 grep -R "POSTGRES_ADMIN_PASSWORD" -n n8n/workflows
@@ -392,7 +426,7 @@ Expected results:
 local-dev-secret         → no output
 POSTGRES_ADMIN_PASSWORD  → no output
 POSTGRES_ADMIN_USER      → no output
-WEBHOOK_SECRET           → should appear only as an environment variable reference
+WEBHOOK_SECRET           → should appear only as an environment variable reference or safe documentation text
 ```
 
 The exported workflow should reference:
@@ -414,6 +448,7 @@ The real `.env` file should not appear as a staged or tracked file.
 Only `.env.example` should be committed.
 
 ---
+
 
 ## Documentation Index
 
