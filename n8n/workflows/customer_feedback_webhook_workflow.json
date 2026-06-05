@@ -1,0 +1,952 @@
+{
+  "name": "Customer Feedback Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Webhook Based Workflow\n\nThis workflow receives customer feedback from an external system through an n8n webhook URL.\n\nSecurity:\n- Requires x-webhook-secret header\n- Expected secret is read from WEBHOOK_SECRET environment variable\n- Secret is not hardcoded in the Code node\n\nWorkflow:\nWebhook\n→ Code - Check Secret\n\n→ IF - Is Authorized?\n\n   ├── false → Insert Unauthorized Log → Respond Unauthorized\n   └── true  → Code - Validate and Clean Feedback\n              → IF - Is Payload Valid?\n                 ├── true  → Insert Feedback to Postgres → Insert Success Log → Respond Success\n                 └── false → Insert Validation Error Log → Respond Validation Error\n\nPostgreSQL stores:\n- customer feedback\n- workflow execution logs\n\nMetabase can show:\n- feedback analytics\n- workflow observability dashboard",
+        "height": 560,
+        "width": 752,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -576,
+        -816
+      ],
+      "typeVersion": 1,
+      "id": "c03abb1e-2b28-4eb0-849d-ef4d900d5b91",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-feedback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -528,
+        -96
+      ],
+      "id": "ca59206e-efb3-4645-8bce-224a2b0ff852",
+      "name": "Webhook",
+      "webhookId": "d1cbeba5-22c8-4055-b63e-de2b04ff43a2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body ?? {};\n\nconst errors = [];\n\nconst allowedFeedbackTypes = [\n  \"review\",\n  \"support_ticket\",\n  \"complaint\",\n  \"product_question\",\n];\n\nconst customerId = Number(payload.customer_id);\nconst productId = Number(payload.product_id);\nconst rating = Number(payload.rating);\n\nconst feedbackType = String(payload.feedback_type ?? \"\").trim();\nconst feedbackText = String(payload.feedback_text ?? \"\").trim();\n\nlet feedbackDate = payload.feedback_date;\n\nif (!Number.isInteger(customerId) || customerId <= 0) {\n  errors.push(\"customer_id is required and must be a positive number\");\n}\n\nif (!Number.isInteger(productId) || productId <= 0) {\n  errors.push(\"product_id is required and must be a positive number\");\n}\n\nif (!allowedFeedbackTypes.includes(feedbackType)) {\n  errors.push(\"feedback_type must be one of: review, support_ticket, complaint, product_question\");\n}\n\nif (!Number.isInteger(rating) || rating < 1 || rating > 5) {\n  errors.push(\"rating must be a number between 1 and 5\");\n}\n\nif (!feedbackText) {\n  errors.push(\"feedback_text is required and cannot be empty\");\n}\n\nif (!feedbackDate) {\n  feedbackDate = new Date().toISOString();\n}\n\nif (errors.length > 0) {\n  return [\n    {\n      json: {\n        status: \"error\",\n        message: \"Invalid payload\",\n        errors,\n      },\n    },\n  ];\n}\n\nlet sentimentLabel;\n\nif (rating >= 4) {\n  sentimentLabel = \"positive\";\n} else if (rating === 3) {\n  sentimentLabel = \"neutral\";\n} else {\n  sentimentLabel = \"negative\";\n}\n\nreturn [\n  {\n    json: {\n      status: \"success\",\n      message: \"Feedback payload validated and cleaned\",\n      customer_id: customerId,\n      product_id: productId,\n      feedback_date: feedbackDate,\n      feedback_type: feedbackType,\n      rating,\n      feedback_text: feedbackText,\n      sentiment_label: sentimentLabel,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -96
+      ],
+      "id": "3b539455-b94c-45dc-a7a0-e8cc367f82f4",
+      "name": "Code - Validate and Clean Feedback"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "customer_feedback",
+          "mode": "list",
+          "cachedResultName": "customer_feedback"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "customer_id": "={{ $json.customer_id }}",
+            "product_id": "={{ $json.product_id }}",
+            "rating": "={{ $json.rating }}",
+            "feedback_date": "={{ $json.feedback_date }}",
+            "feedback_type": "={{ $json.feedback_type }}",
+            "feedback_text": "={{ $json.feedback_text }}",
+            "sentiment_label": "={{ $json.sentiment_label }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "feedback_id",
+              "displayName": "feedback_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_date",
+              "displayName": "feedback_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_type",
+              "displayName": "feedback_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_text",
+              "displayName": "feedback_text",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentiment_label",
+              "displayName": "sentiment_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        640,
+        -96
+      ],
+      "id": "d1a573f0-a704-4c07-9dcc-6dd95a90434b",
+      "name": "Insert Feedback to Postgres / Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8a7ab33e-4083-4837-8d74-be260a7a1f8e",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        400,
+        -96
+      ],
+      "id": "845ff7a4-d0a9-4ea3-a342-84c75c4ea4f2",
+      "name": "If - Is Payload Valid?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    status: $('Code - Validate and Clean Feedback').item.json.status,\n    message: $('Code - Validate and Clean Feedback').item.json.message,\n    errors: $('Code - Validate and Clean Feedback').item.json.errors\n  }\n}}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        144
+      ],
+      "id": "c3867d8b-deae-4815-9fcd-34191d2b5fa6",
+      "name": "Respond with Validation Error to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Customer feedback inserted into PostgreSQL\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1072,
+        -96
+      ],
+      "id": "9bc71001-5de0-4ed8-b518-01e6512a8c46",
+      "name": "Respond to Webhook - Success Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\n\nconst providedSecret =\n  headers['x-webhook-secret'] ||\n  headers['X-Webhook-Secret'] ||\n  headers['X-WEBHOOK-SECRET'];\n\nconst expectedSecret = $env.WEBHOOK_SECRET;\n\nif (!expectedSecret || providedSecret !== expectedSecret) {\n  return [\n    {\n      json: {\n        auth_status: 'unauthorized',\n        status: 'error',\n        message: 'Unauthorized request'\n      }\n    }\n  ];\n}\n\nreturn [\n  {\n    json: {\n      auth_status: 'authorized',\n      body: $json.body\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -96
+      ],
+      "id": "aa86baa9-ffc6-4917-9300-f346badbc033",
+      "name": "Code - Check Secret"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "24240c22-aaef-4068-8290-a0d822253bc0",
+              "leftValue": "={{ $json.auth_status }}",
+              "rightValue": "authorized",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -112,
+        -96
+      ],
+      "id": "e30b74eb-f967-4eec-8387-75057135ab76",
+      "name": "IF - Is Authorized?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"auth_status\": \"unauthorized\",\n  \"status\": \"error\",\n  \"message\": \"Unauthorized request\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        240,
+        144
+      ],
+      "id": "a699b710-a0f6-42b3-9849-0ea1986a4ac1",
+      "name": "Respond Unauthorized"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "workflow_execution_logs",
+          "mode": "list",
+          "cachedResultName": "workflow_execution_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow_name": "Webhook Based Injection Workflow w/Security Node",
+            "event_source": "customer-feedback-webhook",
+            "execution_status": "unauthorized",
+            "auth_status": "unauthorized",
+            "response_status_code": 401,
+            "error_message": "Unauthorized request"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_source",
+              "displayName": "event_source",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_status",
+              "displayName": "execution_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "auth_status",
+              "displayName": "auth_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_status",
+              "displayName": "payload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "response_status_code",
+              "displayName": "response_status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "feedback_type",
+              "displayName": "feedback_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        48,
+        144
+      ],
+      "id": "90314e6c-6b56-4fab-8635-b1e0d08c0d76",
+      "name": "Insert Unauthorized Log",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "workflow_execution_logs",
+          "mode": "list",
+          "cachedResultName": "workflow_execution_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "customer_id": "={{ $('Code - Check Secret').item.json.body.customer_id }}",
+            "product_id": "={{ $('Code - Check Secret').item.json.body.product_id }}",
+            "workflow_name": "Webhook Based Injection Workflow w/Security Node",
+            "event_source": "customer-feedback-webhook",
+            "execution_status": "validation_error",
+            "auth_status": "authorized",
+            "response_status_code": 400,
+            "payload_status": "error",
+            "feedback_type": "={{ $('Code - Check Secret').item.json.body.feedback_type }}",
+            "error_message": "={{ $json.errors.join('; ') }}",
+            "rating": "={{ $('Code - Check Secret').item.json.body.rating }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_source",
+              "displayName": "event_source",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_status",
+              "displayName": "execution_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "auth_status",
+              "displayName": "auth_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_status",
+              "displayName": "payload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "response_status_code",
+              "displayName": "response_status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_type",
+              "displayName": "feedback_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        528,
+        144
+      ],
+      "id": "094b89fd-8a67-4cae-b243-25732d2816eb",
+      "name": "Insert Validation Error Log",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "workflow_execution_logs",
+          "mode": "list",
+          "cachedResultName": "workflow_execution_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "customer_id": "={{ $('Code - Validate and Clean Feedback').item.json.customer_id }}",
+            "product_id": "={{ $('Code - Validate and Clean Feedback').item.json.product_id }}",
+            "workflow_name": "Webhook Based Injection Workflow w/Security Node",
+            "event_source": "customer-feedback-webhook",
+            "execution_status": "success",
+            "auth_status": "authorized",
+            "response_status_code": 200,
+            "payload_status": "success",
+            "feedback_type": "={{ $('Code - Validate and Clean Feedback').item.json.feedback_type }}",
+            "rating": "={{ $('Code - Validate and Clean Feedback').item.json.rating }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_source",
+              "displayName": "event_source",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_status",
+              "displayName": "execution_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "auth_status",
+              "displayName": "auth_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_status",
+              "displayName": "payload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "response_status_code",
+              "displayName": "response_status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_type",
+              "displayName": "feedback_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        864,
+        -96
+      ],
+      "id": "f728fdb1-d511-483a-bbaa-cd3204925361",
+      "name": "Insert Success Log",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code - Check Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate and Clean Feedback": {
+      "main": [
+        [
+          {
+            "node": "If - Is Payload Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Feedback to Postgres / Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Insert Success Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Is Payload Valid?": {
+      "main": [
+        [
+          {
+            "node": "Insert Feedback to Postgres / Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Validation Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Check Secret": {
+      "main": [
+        [
+          {
+            "node": "IF - Is Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Is Authorized?": {
+      "main": [
+        [
+          {
+            "node": "Code - Validate and Clean Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Unauthorized Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Unauthorized Log": {
+      "main": [
+        [
+          {
+            "node": "Respond Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Validation Error Log": {
+      "main": [
+        [
+          {
+            "node": "Respond with Validation Error to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Success Log": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook - Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fbf1e10b-e02f-451b-818a-45714aa78b4f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bf9394dbd18ba3b0f6fa72ad24bcad5ddb1da49c61d387ccb1369b4c60027bbb"
+  },
+  "id": "fYZKGIdhRPCfPHr5",
+  "tags": []
+}
