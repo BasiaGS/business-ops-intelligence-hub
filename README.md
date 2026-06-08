@@ -317,6 +317,43 @@ The Workflow Observability Dashboard shows n8n workflow activity, including succ
 
 ---
 
+## Screenshots
+
+### Executive Overview Dashboard
+
+The Executive Overview dashboard shows business KPIs, revenue trends, sales-channel performance, top products, and inventory reorder alerts.
+
+![Executive Overview Dashboard - KPIs and Revenue Trend](docs/screenshots/metabase_executive_overview_dashboard_1.png)
+
+![Executive Overview Dashboard - Revenue Breakdown and Inventory Alerts](docs/screenshots/metabase_executive_overview_dashboard_2.png)
+
+### Workflow Observability Dashboard
+
+The Workflow Observability Dashboard shows n8n webhook execution activity, including successful executions, unauthorized requests, validation errors, success rate, execution trends, and recent workflow errors.
+
+![Workflow Observability Dashboard](docs/screenshots/metabase_workflow_observability_dashboard.png)
+
+### n8n Customer Feedback Workflow
+
+The n8n workflow receives customer feedback through a webhook, checks the shared secret, validates the payload, inserts valid feedback into PostgreSQL, and logs each important execution path.
+
+![n8n Customer Feedback Workflow Canvas](docs/screenshots/n8n_customer_feedback_workflow_canvas.png)
+
+### n8n Workflow Execution Paths
+
+Successful customer feedback ingestion:
+
+![n8n Customer Feedback Success Execution](docs/screenshots/n8n_customer_feedback_success_execution.png)
+
+Unauthorized request path:
+
+![n8n Customer Feedback Unauthorized Execution](docs/screenshots/n8n_customer_feedback_unauthorized_execution.png)
+
+Validation-error path:
+
+![n8n Customer Feedback Validation Error Execution](docs/screenshots/n8n_customer_feedback_validation_error_execution.png)
+
+
 ## Exported n8n Workflow
 
 The current n8n customer feedback workflow is exported and version-controlled here:
@@ -496,6 +533,9 @@ Step 11 — Build workflow observability analytics and Metabase dashboard
 Step 12 — Production readiness improvements for n8n webhook workflow
 Step 13 — Export and version-control the n8n workflow JSON
 Step 14 — Project README with restore and secret-safety documentation
+Step 15 — Add automated exported-workflow secret checks
+Step 16 — Add n8n workflow exports README
+Step 17 — Add dashboard screenshots and documentation polish
 ```
 
 The project currently demonstrates a working local BI and automation platform with:
@@ -510,7 +550,9 @@ environment-based secret configuration
 PostgreSQL workflow execution logging
 Metabase workflow observability dashboard
 exported n8n workflow JSON
-project documentation
+automated workflow secret-safety checks
+dashboard and workflow screenshots
+portfolio-ready documentation
 ```
 
 ---
@@ -520,16 +562,15 @@ project documentation
 Possible next improvements:
 
 ```text
-1. Add a README inside n8n/workflows.
-2. Add an automated script for workflow secret checks.
-3. Add HMAC request signing for stronger webhook authentication.
-4. Add timestamp validation and replay protection.
-5. Add rate limiting if the webhook is exposed publicly.
-6. Track n8n execution IDs in workflow_execution_logs.
-7. Track workflow execution duration.
-8. Add alerting for repeated unauthorized requests.
-9. Add alerting for repeated validation errors.
-10. Add screenshots of Metabase dashboards.
-11. Add vector database support.
-12. Add an AI assistant layer for document and business-context search.
+1. Add a second business automation, such as an inventory update workflow.
+2. Extend workflow observability to cover multiple workflow types.
+3. Track n8n execution IDs in workflow_execution_logs.
+4. Track workflow execution duration.
+5. Add alerting for repeated unauthorized requests.
+6. Add alerting for repeated validation errors.
+7. Add vector database support.
+8. Add an AI assistant layer for document and business-context search.
+9. Add optional production hardening such as request signing, replay protection, or rate limiting if the webhook is exposed publicly.
 ```
+
+The current webhook security uses an environment-based shared secret and is suitable for local development and portfolio demonstration. Stronger request-signing controls are intentionally left as future production hardening rather than part of the current implementation.

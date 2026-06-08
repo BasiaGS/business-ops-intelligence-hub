@@ -413,29 +413,34 @@ The lower section shows execution status distribution and recent errors for debu
 
 ---
 
+## Screenshot
+
+![Workflow Observability Dashboard](../screenshots/metabase_workflow_observability_dashboard.png)
+
+
 ## Current Dashboard Values
 
 At the time of creation, the dashboard showed:
 
 ```text
-Total Workflow Executions: 3
-Successful Workflow Executions: 1
+Total Workflow Executions: 6
+Successful Workflow Executions: 2
 Workflow Success Rate: 33.33
-Unauthorized Workflow Requests: 1
-Workflow Validation Errors: 1
+Unauthorized Workflow Requests: 2
+Workflow Validation Errors: 2
 ```
 
-These values come from the Step 10 webhook tests.
+These values come from local webhook tests that intentionally covered successful, unauthorized, and validation-error execution paths.
 
-The three logged execution paths were:
+The logged execution paths include:
 
 ```text
-1 unauthorized request
-1 authorized invalid payload
-1 authorized valid payload
+unauthorized requests
+authorized invalid payload requests
+authorized valid payload requests
 ```
 
-The success rate is low because the current dataset intentionally contains one success and two non-success test cases.
+The success rate is low because the current dataset intentionally includes non-success test cases to demonstrate workflow monitoring and error visibility.
 
 ---
 

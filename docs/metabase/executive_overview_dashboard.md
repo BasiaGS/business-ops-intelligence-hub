@@ -312,6 +312,17 @@ The final section shows inventory issues that may require action.
 
 ---
 
+## Screenshots
+
+### KPI and Revenue Trend Section
+
+![Executive Overview Dashboard - KPIs and Revenue Trend](../screenshots/metabase_executive_overview_dashboard_1.png)
+
+### Revenue Breakdown and Inventory Alerts Section
+
+![Executive Overview Dashboard - Revenue Breakdown and Inventory Alerts](../screenshots/metabase_executive_overview_dashboard_2.png)
+
+
 ## Current Dashboard Values
 
 At the time of creation, the dashboard showed:
@@ -319,7 +330,7 @@ At the time of creation, the dashboard showed:
 ```text
 Total Revenue: 1,809
 Total Orders: 22
-Average Feedback Rating: 4
+Average Feedback Rating: 4.15
 Inventory Reorder Alerts: 1 product requiring reorder
 ```
 
