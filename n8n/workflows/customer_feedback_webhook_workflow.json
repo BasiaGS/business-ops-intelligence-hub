@@ -3,15 +3,15 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Webhook Based Workflow\n\nThis workflow receives customer feedback from an external system through an n8n webhook URL.\n\nSecurity:\n- Requires x-webhook-secret header\n- Expected secret is read from WEBHOOK_SECRET environment variable\n- Secret is not hardcoded in the Code node\n\nWorkflow:\nWebhook\n→ Code - Check Secret\n\n→ IF - Is Authorized?\n\n   ├── false → Insert Unauthorized Log → Respond Unauthorized\n   └── true  → Code - Validate and Clean Feedback\n              → IF - Is Payload Valid?\n                 ├── true  → Insert Feedback to Postgres → Insert Success Log → Respond Success\n                 └── false → Insert Validation Error Log → Respond Validation Error\n\nPostgreSQL stores:\n- customer feedback\n- workflow execution logs\n\nMetabase can show:\n- feedback analytics\n- workflow observability dashboard",
-        "height": 560,
-        "width": 752,
+        "content": "## Customer Feedback Workflow\n\nThis workflow receives customer feedback from an external system through an n8n webhook URL.\n\nSecurity:\n- Requires x-webhook-secret header\n- Expected secret is read from WEBHOOK_SECRET environment variable\n- Secret is not hardcoded in the Code node\n\nWorkflow:\nWebhook - Customer Feedback Update\n→ Code - Check Secret\n→ IF - Is Authorized?\n\nUnauthorized path:\n→ Insert Unauthorized Log\n→ Respond Unauthorized\n\nAuthorized path:\n→ Code - Validate and Clean Feedback\n→ IF - Is Payload Valid?\n\nValid payload:\n→ Insert Feedback to Postgres\n→ Insert Success Log\n→ Respond Success\n\nInvalid payload:\n→ Insert Validation Error Log\n→ Respond Validation Error\n\nPostgreSQL stores:\n- customer_feedback table\n- workflow_execution_logs table\n\nMetabase can show:\n- feedback analytics\n- workflow observability dashboard",
+        "height": 720,
+        "width": 832,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -576,
-        -816
+        -976
       ],
       "typeVersion": 1,
       "id": "c03abb1e-2b28-4eb0-849d-ef4d900d5b91",
@@ -942,7 +942,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "fbf1e10b-e02f-451b-818a-45714aa78b4f",
+  "versionId": "d0d241d7-622e-4d84-8346-efe6591c1ce8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "bf9394dbd18ba3b0f6fa72ad24bcad5ddb1da49c61d387ccb1369b4c60027bbb"

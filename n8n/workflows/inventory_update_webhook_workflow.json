@@ -776,6 +776,22 @@
       ],
       "id": "68541149-de08-46ea-bc32-32ba4cfa4b90",
       "name": "Respond Unauthorized"
+    },
+    {
+      "parameters": {
+        "content": "## Inventory Update Workflow\n\nThis workflow receives inventory update data from an external system through an n8n webhook URL.\n\nSecurity:\n• Requires x-webhook-secret header\n• Expected secret is read from WEBHOOK_SECRET environment variable\n• Secret is not hardcoded in the Code node\n\nWorkflow:\nWebhook - Inventory Update\n→ Code - Check Secret\n→ IF - Is Authorized?\n\nUnauthorized path:\n→ Insert Unauthorized Log\n→ Respond Unauthorized\n\nAuthorized path:\n→ Code - Validate and Clean Inventory Update\n→ IF - Is Payload Valid?\n\nValid payload:\n→ Update Inventory in Postgres\n→ Insert Success Log\n→ Respond Success\n\nInvalid payload:\n→ Insert Validation Error Log\n→ Respond Validation Error\n\nPostgreSQL updates:\n• inventory table\n• quantity_on_hand\n• reorder_level\n• updated_at\n\nPostgreSQL logs:\n• workflow_execution_logs\n• success\n• unauthorized\n• validation_error\n\nPurpose:\nThis proves the n8n automation layer can support more than one business process, not only customer feedback ingestion.",
+        "height": 800,
+        "width": 912,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -80,
+        -944
+      ],
+      "typeVersion": 1,
+      "id": "f6e4902d-fcf1-482e-a00f-3529d71fe1f7",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {},
@@ -899,7 +915,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "ee37625b-e59e-4659-ac61-d1f6a3823f19",
+  "versionId": "ba50f75c-6a85-4eab-8ddb-bcb24164ff15",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "bf9394dbd18ba3b0f6fa72ad24bcad5ddb1da49c61d387ccb1369b4c60027bbb"
