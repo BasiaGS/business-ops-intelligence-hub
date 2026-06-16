@@ -39,7 +39,7 @@ Source data
 → business decisions
 ```
 
-Current automation flow:
+Current automation flows:
 
 ```text
 External customer feedback JSON
@@ -47,6 +47,14 @@ External customer feedback JSON
 → security header check
 → payload validation
 → PostgreSQL insert
+→ workflow execution log
+→ Metabase observability dashboard
+
+External inventory update JSON
+→ n8n webhook
+→ security header check
+→ payload validation
+→ PostgreSQL inventory update
 → workflow execution log
 → Metabase observability dashboard
 ```
@@ -84,7 +92,7 @@ analytics-ready layer
 dashboards and monitoring
 ```
 
-The project currently proves that a local Docker-based stack can support both business intelligence and automation observability.
+The project currently proves that a local Docker-based stack can support business intelligence, multiple n8n business automations, and automation observability.
 
 ---
 
@@ -101,24 +109,34 @@ The project currently proves that a local Docker-based stack can support both bu
 
 ---
 
-## Current Workflow
+## Current Workflows
 
-The current n8n workflow receives customer feedback through a webhook.
+The current n8n automation layer contains two business workflows:
 
-It performs these steps:
+1. Customer feedback webhook workflow
+2. Inventory update webhook workflow
+
+Both workflows use the same reusable automation pattern:
 
 ```text
 Webhook
 → Code - Check Secret
 → IF - Is Authorized?
     ├── false → Insert Unauthorized Log → Respond Unauthorized
-    └── true  → Code - Validate and Clean Feedback
+    └── true  → Code - Validate and Clean Payload
                 → IF - Is Payload Valid?
-                    ├── true  → Insert Feedback to Postgres → Insert Success Log → Respond Success
-                    └── false → Insert Validation Error Log → Respond Validation Error
+                    ├── true → PostgreSQL insert or update
+                    │           → Insert Success Log
+                    │           → Respond Success
+                    └── false → Insert Validation Error Log
+                                → Respond Validation Error
 ```
 
-The workflow supports three important execution paths:
+The customer feedback workflow inserts valid customer feedback into PostgreSQL.
+
+The inventory update workflow updates an existing product inventory record in PostgreSQL.
+
+Both workflows support three important execution paths:
 
 ```text
 Unauthorized request
@@ -130,7 +148,7 @@ Authorized but invalid payload
 → workflow_execution_logs row
 
 Authorized and valid payload
-→ customer_feedback insert
+→ PostgreSQL insert or update
 → workflow_execution_logs row
 → HTTP 200
 ```
@@ -164,7 +182,8 @@ Authorized and valid payload
 ├── metabase/
 ├── n8n/
 │   └── workflows/
-│       └── customer_feedback_webhook_workflow.json
+│       ├── customer_feedback_webhook_workflow.json
+│       └── inventory_update_webhook_workflow.json
 ├── scripts/
 ├── vector/
 ├── docker-compose.yml
@@ -275,20 +294,22 @@ The SQL views prepare dashboard-ready data for Metabase.
 
 ## n8n Automation Layer
 
-n8n is used to automate customer feedback ingestion.
+n8n is used to automate customer feedback ingestion and inventory updates.
 
-The workflow receives external JSON, checks a secret header, validates the payload, inserts valid feedback into PostgreSQL, logs each important execution path, and returns a clear HTTP response.
+The workflows receive external JSON, check a secret header, validate the payload, write to PostgreSQL, log each important execution path, and return clear HTTP responses.
 
-Current production webhook path:
+Current production webhook paths:
 
 ```text
 /webhook/customer-feedback
+/webhook/inventory-update
 ```
 
-Current test webhook path:
+Current test webhook paths:
 
 ```text
 /webhook-test/customer-feedback
+/webhook-test/inventory-update
 ```
 
 Important distinction:
@@ -354,15 +375,16 @@ Validation-error path:
 ![n8n Customer Feedback Validation Error Execution](docs/screenshots/n8n_customer_feedback_validation_error_execution.png)
 
 
-## Exported n8n Workflow
+## Exported n8n Workflows
 
-The current n8n customer feedback workflow is exported and version-controlled here:
+The current n8n workflows are exported and version-controlled here:
 
 ```text
 n8n/workflows/customer_feedback_webhook_workflow.json
+n8n/workflows/inventory_update_webhook_workflow.json
 ```
 
-This means the workflow is no longer only stored inside the n8n UI.
+This means the workflows are no longer only stored inside the n8n UI.
 
 The exported JSON helps with:
 
@@ -375,18 +397,20 @@ portfolio documentation
 secret-safety checks
 ```
 
-The exported workflow may still require local n8n credentials to be reconnected after import into a fresh n8n instance.
+The exported workflows may still require local n8n credentials to be reconnected after import into a fresh n8n instance.
 
 ---
 
-## How to Restore the n8n Workflow
+## How to Restore the n8n Workflows
 
-To restore or reuse the exported workflow:
+To restore or reuse the exported workflows:
 
 ```text
 1. Start the Docker stack.
 2. Open n8n at http://localhost:5678.
-3. Import n8n/workflows/customer_feedback_webhook_workflow.json.
+3. Import the required workflow JSON file:
+   - n8n/workflows/customer_feedback_webhook_workflow.json
+   - n8n/workflows/inventory_update_webhook_workflow.json
 4. Review the imported nodes and connections.
 5. Reconnect or confirm the PostgreSQL credential.
 6. Confirm WEBHOOK_SECRET exists in the n8n container environment.
@@ -492,6 +516,7 @@ Only `.env.example` should be committed.
 ### n8n documentation
 
 ```text
+docs/n8n/inventory_update_workflow.md
 docs/n8n/customer_feedback_workflow.md
 docs/n8n/webhook_customer_feedback_ingestion.md
 docs/n8n/webhook_security_and_production_activation.md
@@ -511,6 +536,7 @@ docs/metabase/workflow_observability_dashboard.md
 
 ```text
 n8n/workflows/customer_feedback_webhook_workflow.json
+n8n/workflows/inventory_update_webhook_workflow.json
 ```
 
 ---
@@ -536,6 +562,7 @@ Step 14 — Project README with restore and secret-safety documentation
 Step 15 — Add automated exported-workflow secret checks
 Step 16 — Add n8n workflow exports README
 Step 17 — Add dashboard screenshots and documentation polish
+Step 18 — Add inventory update workflow automation
 ```
 
 The project currently demonstrates a working local BI and automation platform with:
@@ -544,7 +571,8 @@ The project currently demonstrates a working local BI and automation platform wi
 PostgreSQL business database
 SQL analytics views
 Metabase executive dashboard
-n8n webhook ingestion
+n8n customer feedback webhook ingestion
+n8n inventory update webhook automation
 header-based webhook security
 environment-based secret configuration
 PostgreSQL workflow execution logging
@@ -562,8 +590,8 @@ portfolio-ready documentation
 Possible next improvements:
 
 ```text
-1. Add a second business automation, such as an inventory update workflow.
-2. Extend workflow observability to cover multiple workflow types.
+1. Extend workflow observability to compare multiple workflow types.
+2. Add another business automation, such as competitor price updates or lead capture.
 3. Track n8n execution IDs in workflow_execution_logs.
 4. Track workflow execution duration.
 5. Add alerting for repeated unauthorized requests.

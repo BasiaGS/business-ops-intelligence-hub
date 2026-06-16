@@ -1,0 +1,909 @@
+{
+  "name": "Update Inventory from Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inventory-update",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "6e8cb221-30be-4b2f-8c89-ae271acc0fa5",
+      "name": "Webhook",
+      "webhookId": "5fa2a8ae-354e-4603-9afc-02aa0d967b6c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\n\nconst providedSecret =\n  headers['x-webhook-secret'] ||\n  headers['X-Webhook-Secret'] ||\n  headers['X-WEBHOOK-SECRET'];\n\nconst expectedSecret = $env.WEBHOOK_SECRET;\n\nif (!expectedSecret || providedSecret !== expectedSecret) {\n  return [\n    {\n      json: {\n        auth_status: 'unauthorized',\n        status: 'error',\n        message: 'Unauthorized request'\n      }\n    }\n  ];\n}\n\nreturn [\n  {\n    json: {\n      auth_status: 'authorized',\n      body: $json.body\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        0
+      ],
+      "id": "9e6dbbef-b981-4b8c-bdb4-f08f8cdcd655",
+      "name": "Code - Check Secret"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4deb8aae-ce82-4200-93f8-4b8c248d3ad8",
+              "leftValue": "={{ $json.auth_status }}",
+              "rightValue": "authorized",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        352,
+        0
+      ],
+      "id": "72c82494-5f40-42e8-bcc5-7278c1acf318",
+      "name": "If - Is Authorized?"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "workflow_execution_logs",
+          "mode": "list",
+          "cachedResultName": "workflow_execution_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "response_status_code": 401,
+            "workflow_name": "inventory_update_webhook",
+            "event_source": "inventory-update-webhook",
+            "execution_status": "unauthorized",
+            "auth_status": "unauthorized",
+            "error_message": "Unauthorized request"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_source",
+              "displayName": "event_source",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_status",
+              "displayName": "execution_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "auth_status",
+              "displayName": "auth_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_status",
+              "displayName": "payload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "response_status_code",
+              "displayName": "response_status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "feedback_type",
+              "displayName": "feedback_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        560,
+        272
+      ],
+      "id": "e6a4efc9-63f6-403a-92f0-f43e39985f84",
+      "name": "Insert Unauthorized Log",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body ?? {};\n\nconst errors = [];\n\nconst productId = Number(payload.product_id);\nconst quantityOnHand = Number(payload.quantity_on_hand);\n\nconst hasReorderLevel =\n  payload.reorder_level !== undefined &&\n  payload.reorder_level !== null &&\n  payload.reorder_level !== '';\n\nconst reorderLevel = hasReorderLevel\n  ? Number(payload.reorder_level)\n  : null;\n\nconst updateReason = String(payload.update_reason ?? '').trim();\n\nlet updatedAt = payload.updated_at;\n\nif (!Number.isInteger(productId) || productId <= 0) {\n  errors.push('product_id is required and must be a positive number');\n}\n\nif (!Number.isInteger(quantityOnHand) || quantityOnHand < 0) {\n  errors.push('quantity_on_hand is required and must be a number greater than or equal to 0');\n}\n\nif (hasReorderLevel && (!Number.isInteger(reorderLevel) || reorderLevel < 0)) {\n  errors.push('reorder_level must be a number greater than or equal to 0 when provided');\n}\n\nif (!updatedAt) {\n  updatedAt = new Date().toISOString();\n}\n\nif (errors.length > 0) {\n  return [\n    {\n      json: {\n        status: 'error',\n        message: 'Invalid payload',\n        errors,\n        product_id: payload.product_id,\n        quantity_on_hand: payload.quantity_on_hand,\n        reorder_level: payload.reorder_level,\n        update_reason: updateReason,\n        updated_at: updatedAt\n      }\n    }\n  ];\n}\n\nconst cleanedPayload = {\n  status: 'success',\n  message: 'Inventory payload validated and cleaned',\n  product_id: productId,\n  quantity_on_hand: quantityOnHand,\n  update_reason: updateReason,\n  updated_at: updatedAt\n};\n\nif (hasReorderLevel) {\n  cleanedPayload.reorder_level = reorderLevel;\n}\n\nreturn [\n  {\n    json: cleanedPayload\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "b6337f5e-c18a-4564-8e5d-ede794c14b34",
+      "name": "Code - Validate and Clean Inventory Update"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "inventory",
+          "mode": "list",
+          "cachedResultName": "inventory"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "quantity_on_hand": "={{ $json.quantity_on_hand }}",
+            "reorder_level": "={{ $json.reorder_level }}",
+            "updated_at": "={{ $json.updated_at }}",
+            "product_id": "={{ $json.product_id }}"
+          },
+          "matchingColumns": [
+            "product_id"
+          ],
+          "schema": [
+            {
+              "id": "inventory_id",
+              "displayName": "inventory_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "quantity_on_hand",
+              "displayName": "quantity_on_hand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reorder_level",
+              "displayName": "reorder_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "warehouse_location",
+              "displayName": "warehouse_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "02c0c79b-59df-4cc5-942b-3395e6a7387d",
+      "name": "Update Inventory in Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "workflow_execution_logs",
+          "mode": "list",
+          "cachedResultName": "workflow_execution_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "product_id": "={{ $('Code - Validate and Clean Inventory Update').item.json.product_id }}",
+            "workflow_name": "inventory_update_webhook",
+            "event_source": "inventory-update-webhook",
+            "execution_status": "success",
+            "payload_status": "success",
+            "auth_status": "authorized",
+            "response_status_code": 200
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_source",
+              "displayName": "event_source",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_status",
+              "displayName": "execution_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "auth_status",
+              "displayName": "auth_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_status",
+              "displayName": "payload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "response_status_code",
+              "displayName": "response_status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_type",
+              "displayName": "feedback_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1296,
+        0
+      ],
+      "id": "590faa0a-1034-4ff1-800b-51248130e70a",
+      "name": "Insert Success Log",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Inventory updated in PostgreSQL\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1488,
+        0
+      ],
+      "id": "5dbac9fc-b4eb-4e1d-8ade-237e8c8535b2",
+      "name": "Respond Success"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "workflow_execution_logs",
+          "mode": "list",
+          "cachedResultName": "workflow_execution_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "product_id": "={{ $('Code - Validate and Clean Inventory Update').item.json.product_id }}",
+            "workflow_name": "inventory_update_webhook",
+            "event_source": "inventory-update-webhook",
+            "execution_status": "validation_error",
+            "auth_status": "authorized",
+            "payload_status": "error",
+            "response_status_code": 400,
+            "error_message": "={{ $json.errors.join('; ') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_source",
+              "displayName": "event_source",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_status",
+              "displayName": "execution_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "auth_status",
+              "displayName": "auth_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_status",
+              "displayName": "payload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "response_status_code",
+              "displayName": "response_status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_type",
+              "displayName": "feedback_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1088,
+        272
+      ],
+      "id": "cdc514d7-50f4-4f38-bee7-7e6b2b5316f2",
+      "name": "Insert Validation Error Log",
+      "credentials": {
+        "postgres": {
+          "id": "xkpArsUKGUiLIGki",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "848e05c7-76a1-46a9-96c7-4f3d659cede9",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        0
+      ],
+      "id": "653ae319-ed1d-47ee-a477-d38acbbf9006",
+      "name": "IF - Is Payload Valid?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    status: $('Code - Validate and Clean Inventory Update').item.json.status,\n    message: $('Code - Validate and Clean Inventory Update').item.json.message,\n    errors: $('Code - Validate and Clean Inventory Update').item.json.errors\n  }\n}}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1296,
+        272
+      ],
+      "id": "f03066e7-5160-4d75-a510-916b3e3240f9",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"auth_status\": \"unauthorized\",\n  \"status\": \"error\",\n  \"message\": \"Unauthorized request\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        768,
+        272
+      ],
+      "id": "68541149-de08-46ea-bc32-32ba4cfa4b90",
+      "name": "Respond Unauthorized"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code - Check Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Check Secret": {
+      "main": [
+        [
+          {
+            "node": "If - Is Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Is Authorized?": {
+      "main": [
+        [
+          {
+            "node": "Code - Validate and Clean Inventory Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Unauthorized Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate and Clean Inventory Update": {
+      "main": [
+        [
+          {
+            "node": "IF - Is Payload Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Inventory in Postgres": {
+      "main": [
+        [
+          {
+            "node": "Insert Success Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Success Log": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Is Payload Valid?": {
+      "main": [
+        [
+          {
+            "node": "Update Inventory in Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Validation Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Validation Error Log": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Unauthorized Log": {
+      "main": [
+        [
+          {
+            "node": "Respond Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ee37625b-e59e-4659-ac61-d1f6a3823f19",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bf9394dbd18ba3b0f6fa72ad24bcad5ddb1da49c61d387ccb1369b4c60027bbb"
+  },
+  "id": "m8bxV43TFRfQoUJv",
+  "tags": []
+}
