@@ -17,7 +17,7 @@ This makes the webhook more realistic and safer because unknown or unauthorized 
 ## Workflow Name
 
 ```text
-Webhook Based Injection Workflow w/Security Node
+customer_feedback_webhook
 ```
 
 ---

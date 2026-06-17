@@ -325,7 +325,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "workflow_name": "Webhook Based Injection Workflow w/Security Node",
+            "workflow_name": "customer_feedback_webhook",
             "event_source": "customer-feedback-webhook",
             "execution_status": "unauthorized",
             "auth_status": "unauthorized",
@@ -497,7 +497,7 @@
           "value": {
             "customer_id": "={{ $('Code - Check Secret').item.json.body.customer_id }}",
             "product_id": "={{ $('Code - Check Secret').item.json.body.product_id }}",
-            "workflow_name": "Webhook Based Injection Workflow w/Security Node",
+            "workflow_name": "customer_feedback_webhook",
             "event_source": "customer-feedback-webhook",
             "execution_status": "validation_error",
             "auth_status": "authorized",
@@ -667,7 +667,7 @@
           "value": {
             "customer_id": "={{ $('Code - Validate and Clean Feedback').item.json.customer_id }}",
             "product_id": "={{ $('Code - Validate and Clean Feedback').item.json.product_id }}",
-            "workflow_name": "Webhook Based Injection Workflow w/Security Node",
+            "workflow_name": "customer_feedback_webhook",
             "event_source": "customer-feedback-webhook",
             "execution_status": "success",
             "auth_status": "authorized",

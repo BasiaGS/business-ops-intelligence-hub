@@ -162,6 +162,29 @@ customer_feedback
 
 ---
 
+## Workflow Name Standardization
+
+In Step 20, `workflow_name` values were standardized so workflow logs use stable technical identifiers instead of display-style workflow names.
+
+Current `workflow_name` values:
+
+```text
+customer_feedback_webhook
+inventory_update_webhook
+```
+
+Current `event_source` values:
+
+```text
+customer-feedback-webhook
+inventory-update-webhook
+```
+
+The `event_source` field remains the preferred dashboard grouping field because it is concise and stable for comparing multiple workflows.
+
+
+---
+
 ## Unauthorized Request Logging
 
 The unauthorized branch logs requests that do not include the correct security header.
@@ -169,7 +192,7 @@ The unauthorized branch logs requests that do not include the correct security h
 It inserts:
 
 ```text
-workflow_name: Webhook Based Injection Workflow w/Security Node
+workflow_name: customer_feedback_webhook
 event_source: customer-feedback-webhook
 execution_status: unauthorized
 auth_status: unauthorized

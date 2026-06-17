@@ -711,5 +711,4 @@ add alerting for repeated unauthorized requests
 add alerting for repeated validation errors
 add a daily or weekly workflow health summary
 create separate dashboards for production and test workflows
-standardize workflow_name values across all workflow log nodes
 ```

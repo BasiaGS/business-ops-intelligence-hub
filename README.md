@@ -136,6 +136,20 @@ The customer feedback workflow inserts valid customer feedback into PostgreSQL.
 
 The inventory update workflow updates an existing product inventory record in PostgreSQL.
 
+Workflow log identifiers are standardized as stable technical names:
+
+```text
+workflow_name values:
+customer_feedback_webhook
+inventory_update_webhook
+
+event_source values:
+customer-feedback-webhook
+inventory-update-webhook
+```
+
+`event_source` remains the preferred dashboard grouping field for workflow comparison.
+
 Both workflows support three important execution paths:
 
 ```text
@@ -564,6 +578,7 @@ Step 16 — Add n8n workflow exports README
 Step 17 — Add dashboard screenshots and documentation polish
 Step 18 — Add inventory update workflow automation
 Step 19 — Extend workflow observability for multiple workflows
+Step 20 — Standardize workflow_name values across workflow log nodes
 ```
 
 The project currently demonstrates a working local BI and automation platform with:
@@ -596,10 +611,9 @@ Possible next improvements:
 3. Track workflow execution duration.
 4. Add alerting for repeated unauthorized requests.
 5. Add alerting for repeated validation errors.
-6. Standardize workflow_name values across all workflow log nodes.
-7. Add vector database support.
-8. Add an AI assistant layer for document and business-context search.
-9. Add optional production hardening such as request signing, replay protection, or rate limiting if the webhook is exposed publicly.
+6. Add vector database support.
+7. Add an AI assistant layer for document and business-context search.
+8. Add optional production hardening such as request signing, replay protection, or rate limiting if the webhook is exposed publicly.
 ```
 
 The current webhook security uses an environment-based shared secret and is suitable for local development and portfolio demonstration. Stronger request-signing controls are intentionally left as future production hardening rather than part of the current implementation.
