@@ -33,7 +33,7 @@ x-webhook-secret
 Local demo value used during testing:
 
 ```text
-local-dev-secret
+your_local_webhook_secret
 ```
 
 Important:
@@ -134,7 +134,7 @@ This node checks whether the incoming request includes the correct `x-webhook-se
 Code used:
 
 ```javascript
-const expectedSecret = 'local-dev-secret';
+const expectedSecret = 'example-hardcoded-secret';
 
 const headers = $json.headers || {};
 const providedSecret =
@@ -422,7 +422,7 @@ Command:
 ```bash
 curl -i -X POST "http://localhost:5678/webhook-test/customer-feedback" \
   -H "Content-Type: application/json" \
-  -H "x-webhook-secret: local-dev-secret" \
+  -H "x-webhook-secret: your_local_webhook_secret" \
   -d '{
     "customer_id": 3,
     "product_id": 5,
@@ -461,7 +461,7 @@ Command:
 ```bash
 curl -i -X POST "http://localhost:5678/webhook-test/customer-feedback" \
   -H "Content-Type: application/json" \
-  -H "x-webhook-secret: local-dev-secret" \
+  -H "x-webhook-secret: your_local_webhook_secret" \
   -d '{
     "customer_id": 3,
     "product_id": 5,
@@ -585,7 +585,7 @@ Production test command:
 ```bash
 curl -i -X POST "http://localhost:5678/webhook/customer-feedback" \
   -H "Content-Type: application/json" \
-  -H "x-webhook-secret: local-dev-secret" \
+  -H "x-webhook-secret: your_local_webhook_secret" \
   -d '{
     "customer_id": 3,
     "product_id": 5,

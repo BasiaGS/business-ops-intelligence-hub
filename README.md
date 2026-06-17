@@ -524,7 +524,7 @@ It should not contain the real local secret value.
 ### Manual Fallback Secret-Check (in case script is not working)
 
 ```bash
-grep -R "local-dev-secret" -n n8n/workflows
+grep -R "your_local_webhook_secret" -n n8n/workflows
 grep -R "POSTGRES_ADMIN_PASSWORD" -n n8n/workflows
 grep -R "POSTGRES_ADMIN_USER" -n n8n/workflows
 grep -R "WEBHOOK_SECRET" -n n8n/workflows
@@ -533,7 +533,7 @@ grep -R "WEBHOOK_SECRET" -n n8n/workflows
 Expected results:
 
 ```text
-local-dev-secret         → no output
+your_local_webhook_secret → no output
 POSTGRES_ADMIN_PASSWORD  → no output
 POSTGRES_ADMIN_USER      → no output
 WEBHOOK_SECRET           → should appear only as an environment variable reference or safe documentation text

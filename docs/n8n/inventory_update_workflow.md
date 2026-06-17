@@ -308,7 +308,7 @@ Command:
 ```bash
 curl -i -X POST "http://localhost:5678/webhook/inventory-update" \
   -H "Content-Type: application/json" \
-  -H "x-webhook-secret: local-dev-secret" \
+  -H "x-webhook-secret: your_local_webhook_secret" \
   -d '{
     "product_id": 5,
     "quantity_on_hand": 43,
@@ -373,7 +373,7 @@ Command:
 ```bash
 curl -i -X POST "http://localhost:5678/webhook-test/inventory-update" \
   -H "Content-Type: application/json" \
-  -H "x-webhook-secret: local-dev-secret" \
+  -H "x-webhook-secret: your_local_webhook_secret" \
   -d '{
     "product_id": 5,
     "quantity_on_hand": -10,

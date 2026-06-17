@@ -17,7 +17,7 @@ This makes the workflow more production-like because the secret value is now man
 Before Step 12, the `Code - Check Secret` node used a hardcoded local demo secret:
 
 ```javascript
-const expectedSecret = 'local-dev-secret';
+const expectedSecret = 'example-hardcoded-secret';
 ```
 
 This worked for local testing, but it is not a good production pattern.
@@ -77,7 +77,7 @@ This allows the workflow code to read the webhook secret through n8n's environme
 The local `.env` file was updated with the real local development value:
 
 ```env
-WEBHOOK_SECRET=local-dev-secret
+WEBHOOK_SECRET=your_local_webhook_secret
 ```
 
 This value is used only for local testing.
@@ -103,7 +103,7 @@ docker exec business_ops_n8n printenv WEBHOOK_SECRET
 Expected result:
 
 ```text
-local-dev-secret
+your_local_webhook_secret
 ```
 
 This confirmed that Docker Compose passed the variable into the n8n container correctly.
@@ -117,7 +117,7 @@ The `Code - Check Secret` node was updated.
 Before Step 12, the expected secret was hardcoded:
 
 ```javascript
-const expectedSecret = 'local-dev-secret';
+const expectedSecret = 'your_local_webhook_secret';
 ```
 
 After Step 12, the expected secret is read from the environment:

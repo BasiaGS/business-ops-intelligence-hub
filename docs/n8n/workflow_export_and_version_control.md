@@ -101,7 +101,7 @@ The exported workflow was checked to make sure it does not contain the real loca
 The workflow should not contain:
 
 ```text
-local-dev-secret
+your_local_webhook_secret
 ```
 
 The secret value belongs in the local `.env` file, not in Git.
@@ -133,7 +133,7 @@ customer_feedback_webhook_workflow.json
 The exported workflow was checked for accidental secret exposure:
 
 ```bash
-grep -R "local-dev-secret" -n n8n/workflows
+grep -R "your_local_webhook_secret" -n n8n/workflows
 ```
 
 Expected result:
@@ -199,7 +199,7 @@ The workflow depends on the project PostgreSQL database and n8n environment conf
 The local `.env` file should contain the real local development value:
 
 ```env
-WEBHOOK_SECRET=local-dev-secret
+WEBHOOK_SECRET=your_local_webhook_secret
 ```
 
 The `.env.example` file should only contain a safe placeholder:
