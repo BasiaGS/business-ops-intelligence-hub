@@ -632,11 +632,24 @@ The lower section shows recent errors and recent activity for debugging.
 
 ## Screenshot
 
+The screenshots below show the updated multi-workflow dashboard layout, including workflow comparison, success-rate comparison, status breakdown, recent workflow activity and recent workflow errors.
+
+### Multi-Workflow Summary and Comparison
 ![Workflow Observability Dashboard](../screenshots/metabase_workflow_observability_dashboard.png)
 
-The screenshot may show the earlier single-workflow dashboard layout. Step 19 updates the SQL and documentation so the dashboard can be extended to compare multiple workflows.
+
+### Multi-Workflow Executions
+
+![Workflow Observability Dashboard - Multi-Workflow Summary](../screenshots/metabase_workflow_observability_dashboard_1.png)
+
+
+### Recent Workflow Activity and Errors
+
+![Workflow Observability Dashboard - Recent Workflow Activity](../screenshots/metabase_workflow_observability_dashboard_2.png)
 
 ---
+
+
 
 ## Current Dashboard Values
 

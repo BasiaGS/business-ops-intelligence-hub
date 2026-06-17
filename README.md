@@ -1,5 +1,17 @@
 # Business Ops Intelligence Hub
 
+
+
+## Portfolio Deployment Scope
+
+This project is designed as a local Docker Compose portfolio deployment.
+
+It is not presented as a production cloud deployment. The goal is to demonstrate a reproducible analytics and automation stack that can be cloned, configured with a local `.env` file, started locally, and reviewed through PostgreSQL, n8n, and Metabase.
+
+---
+
+## Project Summary
+
 A self-hosted small-business analytics and automation platform for a fictional e-commerce business called **EcoHome Supplies**.
 
 The project combines:
@@ -215,6 +227,18 @@ The `.env` file should not be committed to Git.
 
 The committed `.env.example` file contains safe placeholders only.
 
+Use this command to create suitable .env
+
+```bash
+cp .env.example .env
+
+```
+Then,
+
+```text
+Edit `.env` and replace placeholder values before starting the stack.
+```
+
 Example webhook secret placeholder:
 
 ```env
@@ -224,7 +248,7 @@ WEBHOOK_SECRET=change_this_webhook_secret
 The real local `.env` file should contain the actual local value:
 
 ```env
-WEBHOOK_SECRET=local-dev-secret
+WEBHOOK_SECRET=your_local_webhook_secret
 ```
 
 The n8n service receives this value through `docker-compose.yml`:
@@ -278,6 +302,8 @@ The ports are bound to `127.0.0.1`, so the services are intended for local devel
 ## PostgreSQL Database Layer
 
 PostgreSQL stores the main business data and workflow execution logs.
+
+PostgreSQL initialization files in `db/init` run automatically only when the Postgres Docker volume is first created. If the database volume already exists, changes to files in `db/init` are not automatically reapplied.
 
 Important SQL files:
 
@@ -362,11 +388,20 @@ The Executive Overview dashboard shows business KPIs, revenue trends, sales-chan
 
 ![Executive Overview Dashboard - Revenue Breakdown and Inventory Alerts](docs/screenshots/metabase_executive_overview_dashboard_2.png)
 
+
+
 ### Workflow Observability Dashboard
+
 
 The Workflow Observability Dashboard shows n8n webhook execution activity across multiple automations, including successful executions, unauthorized requests, validation errors, success rate, workflow comparison, execution trends, and recent workflow errors.
 
-![Workflow Observability Dashboard](docs/screenshots/metabase_workflow_observability_dashboard.png)
+![Workflow Observability Dashboard - Workflow Summary & Comparison](docs/screenshots/metabase_workflow_observability_dashboard.png)
+
+![Workflow Observability Dashboard - Multi-Workflow Executions](docs/screenshots/metabase_workflow_observability_dashboard_1.png)
+
+![Workflow Observability Dashboard - Recent Workflow Activity & Latest Errors](docs/screenshots/metabase_workflow_observability_dashboard_2.png)
+
+
 
 ### n8n Customer Feedback Workflow
 
@@ -443,7 +478,7 @@ docker exec business_ops_n8n printenv WEBHOOK_SECRET
 Expected local development result:
 
 ```text
-local-dev-secret
+your_local_webhook_secret
 ```
 
 A fresh n8n import may preserve workflow structure and node settings, but credentials may need to be reconnected manually.
