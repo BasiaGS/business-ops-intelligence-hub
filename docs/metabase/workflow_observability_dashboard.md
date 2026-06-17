@@ -2,11 +2,18 @@
 
 ## Purpose
 
-The **Workflow Observability Dashboard** is a Metabase dashboard created for monitoring the n8n customer feedback webhook workflow.
+The **Workflow Observability Dashboard** is a Metabase dashboard created for monitoring n8n webhook workflow activity.
 
-It provides a clear view of workflow activity by showing total executions, successful executions, unauthorized requests, validation errors, success rate, execution trends, status breakdowns, and recent workflow errors.
+It now supports multi-workflow observability. This means the dashboard can compare execution activity across more than one automation, including:
 
-The dashboard is designed to make the automation layer easier to monitor, debug, and explain.
+```text
+customer-feedback-webhook
+inventory-update-webhook
+```
+
+The dashboard provides a clear view of workflow activity by showing total executions, successful executions, unauthorized requests, validation errors, success rate, execution trends, status breakdowns, workflow comparison metrics, and recent workflow errors.
+
+The dashboard is designed to make the automation layer easier to monitor, debug, compare, and explain.
 
 ---
 
@@ -68,25 +75,50 @@ Source table:
 workflow_execution_logs
 ```
 
-The source table was created in Step 10 and stores audit records for important n8n webhook execution paths.
+The source table stores audit records for important n8n webhook execution paths.
 
-The table logs:
+The table currently logs:
 
 ```text
 unauthorized requests
 validation errors
-successful customer feedback inserts
+successful workflow executions
+workflow-level identifiers
+HTTP response status codes
+recent error messages
+```
+
+---
+
+## Current Logged Workflows
+
+The current observability layer includes logs from two n8n workflows:
+
+```text
+customer-feedback-webhook
+inventory-update-webhook
+```
+
+The workflow logs contain both `workflow_name` and `event_source`.
+
+For dashboard grouping, `event_source` is the preferred workflow identifier because it is consistent across the current workflow logs.
+
+Current event sources:
+
+```text
+customer-feedback-webhook
+inventory-update-webhook
 ```
 
 ---
 
 ## SQL Views Created
 
-Step 11 created four SQL views.
+Step 19 extends the observability views so they can support multiple workflows.
 
 ### 1. vw_workflow_execution_summary
 
-**Purpose:** Provides high-level workflow execution KPIs.
+**Purpose:** Provides global high-level workflow execution KPIs across all workflows.
 
 Main metrics:
 
@@ -104,41 +136,67 @@ This view is used for the headline KPI cards.
 
 ---
 
-### 2. vw_workflow_execution_daily
+### 2. vw_workflow_comparison
 
-**Purpose:** Shows workflow execution volume by day and execution status.
+**Purpose:** Compares workflow activity and reliability by workflow.
+
+Main columns:
+
+```text
+event_source
+workflow_name
+total_executions
+successful_executions
+unauthorized_executions
+validation_error_executions
+error_executions
+success_rate_percent
+latest_execution_at
+```
+
+This view is used for workflow comparison cards and tables.
+
+---
+
+### 3. vw_workflow_execution_daily
+
+**Purpose:** Shows workflow execution volume by day, workflow, and execution status.
 
 Main columns:
 
 ```text
 execution_date
+event_source
+workflow_name
 execution_status
 execution_count
 ```
 
-This view is used for the workflow execution trend chart.
+This view is used for workflow execution trend charts.
 
 ---
 
-### 3. vw_workflow_status_breakdown
+### 4. vw_workflow_status_breakdown
 
-**Purpose:** Shows total workflow executions by status.
+**Purpose:** Shows execution status breakdown by workflow.
 
 Main columns:
 
 ```text
+event_source
+workflow_name
 execution_status
 execution_count
-execution_percent
+execution_percent_within_workflow
 ```
 
-This view is used for the status breakdown chart.
+This view is used for grouped status breakdown charts.
 
 ---
 
-### 4. vw_workflow_recent_errors
+### 5. vw_workflow_recent_errors
 
-**Purpose:** Shows recent failed or suspicious workflow activity.
+**Purpose:** Shows recent failed or suspicious workflow activity across all workflows.
 
 Main columns:
 
@@ -162,11 +220,37 @@ This view is used for the latest workflow errors table.
 
 ---
 
-## Dashboard Cards
+### 6. vw_workflow_recent_activity
+
+**Purpose:** Shows the latest workflow executions across all workflows.
+
+Main columns:
+
+```text
+log_id
+created_at
+workflow_name
+event_source
+execution_status
+auth_status
+payload_status
+response_status_code
+customer_id
+product_id
+feedback_type
+rating
+error_message
+```
+
+This view is used for recent workflow activity and audit/debugging tables.
+
+---
+
+## Recommended Dashboard Cards
 
 ### 1. Total Workflow Executions
 
-**Purpose:** Shows the total number of logged workflow executions.
+**Purpose:** Shows the total number of logged workflow executions across all workflows.
 
 **Metabase visualization:**
 
@@ -190,7 +274,7 @@ Total Executions
 
 ### 2. Successful Workflow Executions
 
-**Purpose:** Shows how many workflow executions completed successfully.
+**Purpose:** Shows how many workflow executions completed successfully across all workflows.
 
 **Metabase visualization:**
 
@@ -214,7 +298,7 @@ Successful Executions
 
 ### 3. Workflow Success Rate
 
-**Purpose:** Shows the percentage of workflow executions that completed successfully.
+**Purpose:** Shows the percentage of all workflow executions that completed successfully.
 
 **Metabase visualization:**
 
@@ -284,9 +368,70 @@ Validation Error Executions
 
 ---
 
-### 6. Workflow Executions Over Time
+### 6. Workflow Comparison
 
-**Purpose:** Shows workflow execution volume over time, split by execution status.
+**Purpose:** Compares total executions, success count, unauthorized count, validation-error count, error count, success rate, and latest execution time by workflow.
+
+**Metabase visualization:**
+
+```text
+Table
+```
+
+**Source view:**
+
+```text
+vw_workflow_comparison
+```
+
+**Recommended displayed columns:**
+
+```text
+Event Source
+Total Executions
+Successful Executions
+Unauthorized Executions
+Validation Error Executions
+Error Executions
+Success Rate Percent
+Latest Execution At
+```
+
+---
+
+### 7. Success Rate by Workflow
+
+**Purpose:** Compares workflow reliability by showing success rate for each workflow.
+
+**Metabase visualization:**
+
+```text
+Bar chart
+```
+
+**Source view:**
+
+```text
+vw_workflow_comparison
+```
+
+**X-axis:**
+
+```text
+Event Source
+```
+
+**Y-axis:**
+
+```text
+Success Rate Percent
+```
+
+---
+
+### 8. Daily Executions by Workflow
+
+**Purpose:** Shows workflow execution volume over time, split by workflow and execution status.
 
 **Metabase visualization:**
 
@@ -315,14 +460,15 @@ Execution Count
 **Series / breakout:**
 
 ```text
+Event Source
 Execution Status
 ```
 
 ---
 
-### 7. Workflow Executions by Status
+### 9. Workflow Executions by Status
 
-**Purpose:** Compares the number of workflow executions by status.
+**Purpose:** Compares execution statuses within each workflow.
 
 **Metabase visualization:**
 
@@ -339,7 +485,7 @@ vw_workflow_status_breakdown
 **X-axis:**
 
 ```text
-Execution Status
+Event Source
 ```
 
 **Y-axis:**
@@ -348,11 +494,17 @@ Execution Status
 Execution Count
 ```
 
+**Series / breakout:**
+
+```text
+Execution Status
+```
+
 ---
 
-### 8. Latest Workflow Errors
+### 10. Latest Workflow Errors
 
-**Purpose:** Shows recent unauthorized requests, validation errors, and other workflow errors.
+**Purpose:** Shows recent unauthorized requests, validation errors, and other workflow errors across all workflows.
 
 **Metabase visualization:**
 
@@ -370,6 +522,7 @@ vw_workflow_recent_errors
 
 ```text
 Created At
+Event Source
 Execution Status
 Response Status Code
 Customer ID
@@ -387,29 +540,93 @@ Created At descending
 
 ---
 
-## Dashboard Layout
+### 11. Recent Workflow Activity
 
-The dashboard uses an observability-style layout:
+**Purpose:** Shows the latest workflow executions across all workflows, including successful and failed paths.
+
+**Metabase visualization:**
+
+```text
+Table
+```
+
+**Source view:**
+
+```text
+vw_workflow_recent_activity
+```
+
+**Displayed columns:**
+
+```text
+Created At
+Event Source
+Execution Status
+Auth Status
+Payload Status
+Response Status Code
+Customer ID
+Product ID
+Error Message
+```
+
+**Sort:**
+
+```text
+Created At descending
+```
+
+---
+
+## Recommended Dashboard Filter
+
+The dashboard should include a filter for:
+
+```text
+event_source
+```
+
+This allows the dashboard user to inspect:
+
+```text
+all workflows
+customer-feedback-webhook only
+inventory-update-webhook only
+```
+
+---
+
+## Recommended Dashboard Layout
+
+The dashboard should use an observability-style layout:
 
 ```text
 [ Total Workflow Executions ] [ Successful Workflow Executions ] [ Workflow Success Rate ]
 
 [ Unauthorized Workflow Requests ] [ Workflow Validation Errors ]
 
-[ Workflow Executions Over Time ]
+[ Workflow Comparison ]
+
+[ Success Rate by Workflow ]
+
+[ Daily Executions by Workflow ]
 
 [ Workflow Executions by Status ]
 
 [ Latest Workflow Errors ]
+
+[ Recent Workflow Activity ]
 ```
 
-The top row shows headline workflow KPIs.
+The top row shows global headline KPIs.
 
 The second row highlights the most important failure counters.
 
-The middle section shows workflow activity over time.
+The comparison section shows how each workflow performs.
 
-The lower section shows execution status distribution and recent errors for debugging.
+The trend section shows workflow activity over time.
+
+The lower section shows recent errors and recent activity for debugging.
 
 ---
 
@@ -417,56 +634,52 @@ The lower section shows execution status distribution and recent errors for debu
 
 ![Workflow Observability Dashboard](../screenshots/metabase_workflow_observability_dashboard.png)
 
+The screenshot may show the earlier single-workflow dashboard layout. Step 19 updates the SQL and documentation so the dashboard can be extended to compare multiple workflows.
+
+---
 
 ## Current Dashboard Values
 
-At the time of creation, the dashboard showed:
+At the time of Step 19 validation, the workflow comparison view showed local test data for both workflows:
 
 ```text
-Total Workflow Executions: 6
-Successful Workflow Executions: 2
-Workflow Success Rate: 33.33
-Unauthorized Workflow Requests: 2
-Workflow Validation Errors: 2
+customer-feedback-webhook: 25 total executions, 7 successful executions, 28.00 success rate
+inventory-update-webhook: 4 total executions, 2 successful executions, 50.00 success rate
 ```
 
 These values come from local webhook tests that intentionally covered successful, unauthorized, and validation-error execution paths.
 
-The logged execution paths include:
-
-```text
-unauthorized requests
-authorized invalid payload requests
-authorized valid payload requests
-```
-
-The success rate is low because the current dataset intentionally includes non-success test cases to demonstrate workflow monitoring and error visibility.
+The success rates are low because the current dataset intentionally includes non-success test cases to demonstrate workflow monitoring and error visibility.
 
 ---
 
 ## What This Dashboard Proves
 
-This dashboard demonstrates workflow observability for the automation layer of the project.
+This dashboard demonstrates multi-workflow observability for the automation layer of the project.
 
 It shows that the project can:
 
 ```text
 1. Capture n8n webhook activity in PostgreSQL
-2. Separate successful executions from unauthorized and invalid requests
-3. Transform workflow logs into analytics-ready SQL views
-4. Use Metabase to monitor automation health
-5. Surface recent workflow errors for debugging and auditability
+2. Monitor more than one business automation
+3. Separate successful executions from unauthorized and invalid requests
+4. Compare workflow health by workflow/event source
+5. Transform workflow logs into analytics-ready SQL views
+6. Use Metabase to monitor automation health
+7. Surface recent workflow errors and recent activity for debugging and auditability
 ```
 
-This turns n8n workflow activity into a business-facing monitoring dashboard.
+This turns n8n workflow activity into a business-facing monitoring layer.
 
 ---
 
 ## Why This Matters
 
-Before workflow logging, the workflow could process customer feedback, but its activity was only visible inside n8n.
+Before workflow logging, workflow activity was mainly visible inside n8n.
 
-After Step 10 and Step 11, workflow activity is visible in PostgreSQL and Metabase.
+After Step 10 and Step 11, workflow activity became visible in PostgreSQL and Metabase.
+
+After Step 19, the observability layer can compare multiple workflows instead of only reporting one global summary.
 
 This means the platform can now answer operational questions such as:
 
@@ -475,11 +688,14 @@ How many webhook requests were received?
 How many succeeded?
 How many failed authorization?
 How many failed validation?
-What was the latest workflow error?
-When did the latest workflow execution happen?
+Which workflow receives the most requests?
+Which workflow has the highest success rate?
+Which workflow has the most validation errors?
+What was the latest workflow error across all workflows?
+When did each workflow last run?
 ```
 
-This makes the automation layer more transparent and easier to maintain.
+This makes the automation layer more transparent, easier to maintain, and easier to explain as a portfolio project.
 
 ---
 
@@ -495,5 +711,5 @@ add alerting for repeated unauthorized requests
 add alerting for repeated validation errors
 add a daily or weekly workflow health summary
 create separate dashboards for production and test workflows
-move webhook secrets fully into environment-based configuration
+standardize workflow_name values across all workflow log nodes
 ```

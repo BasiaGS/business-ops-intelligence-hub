@@ -334,7 +334,7 @@ Workflow Observability Dashboard
 
 The Executive Overview dashboard shows business KPIs such as revenue, orders, feedback rating, product performance, sales channel performance, and inventory alerts.
 
-The Workflow Observability Dashboard shows n8n workflow activity, including successful executions, unauthorized requests, validation errors, success rate, execution trends, and recent workflow errors.
+The Workflow Observability Dashboard shows n8n workflow activity across multiple automations, including successful executions, unauthorized requests, validation errors, success rate, workflow comparison, execution trends, and recent workflow errors.
 
 ---
 
@@ -350,7 +350,7 @@ The Executive Overview dashboard shows business KPIs, revenue trends, sales-chan
 
 ### Workflow Observability Dashboard
 
-The Workflow Observability Dashboard shows n8n webhook execution activity, including successful executions, unauthorized requests, validation errors, success rate, execution trends, and recent workflow errors.
+The Workflow Observability Dashboard shows n8n webhook execution activity across multiple automations, including successful executions, unauthorized requests, validation errors, success rate, workflow comparison, execution trends, and recent workflow errors.
 
 ![Workflow Observability Dashboard](docs/screenshots/metabase_workflow_observability_dashboard.png)
 
@@ -563,6 +563,7 @@ Step 15 — Add automated exported-workflow secret checks
 Step 16 — Add n8n workflow exports README
 Step 17 — Add dashboard screenshots and documentation polish
 Step 18 — Add inventory update workflow automation
+Step 19 — Extend workflow observability for multiple workflows
 ```
 
 The project currently demonstrates a working local BI and automation platform with:
@@ -590,12 +591,12 @@ portfolio-ready documentation
 Possible next improvements:
 
 ```text
-1. Extend workflow observability to compare multiple workflow types.
-2. Add another business automation, such as competitor price updates or lead capture.
-3. Track n8n execution IDs in workflow_execution_logs.
-4. Track workflow execution duration.
-5. Add alerting for repeated unauthorized requests.
-6. Add alerting for repeated validation errors.
+1. Add another business automation, such as competitor price updates or lead capture.
+2. Track n8n execution IDs in workflow_execution_logs.
+3. Track workflow execution duration.
+4. Add alerting for repeated unauthorized requests.
+5. Add alerting for repeated validation errors.
+6. Standardize workflow_name values across all workflow log nodes.
 7. Add vector database support.
 8. Add an AI assistant layer for document and business-context search.
 9. Add optional production hardening such as request signing, replay protection, or rate limiting if the webhook is exposed publicly.
