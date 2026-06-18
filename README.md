@@ -361,6 +361,31 @@ Important distinction:
 
 ---
 
+## Local Workflow Test Commands
+
+The n8n workflows can be tested locally with curl against the n8n webhook test URLs.
+
+Detailed test commands are documented here:
+
+- docs/n8n/customer_feedback_workflow_tests.md
+
+- docs/n8n/inventory_update_workflow_tests.md
+
+The test documentation covers:
+
+successful requests
+unauthorized requests
+validation-error requests
+PostgreSQL verification queries
+workflow execution log verification
+
+> Use /webhook-test/... while the workflow is open and listening for a test event in n8n.
+
+> Use /webhook/... only after the workflow is active/published.
+
+---
+
+
 ## Metabase Analytics Layer
 
 Metabase is used as the dashboard and business intelligence layer.
@@ -566,6 +591,8 @@ Only `.env.example` should be committed.
 
 ```text
 docs/n8n/inventory_update_workflow.md
+docs/n8n/customer_feedback_workflow_tests.md
+docs/n8n/inventory_update_workflow_tests.md
 docs/n8n/customer_feedback_workflow.md
 docs/n8n/webhook_customer_feedback_ingestion.md
 docs/n8n/webhook_security_and_production_activation.md

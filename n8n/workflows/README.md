@@ -84,6 +84,26 @@ Important n8n distinction:
 
 ---
 
+## Workflow Test Commands
+
+Detailed local curl test commands are documented outside this export folder:
+
+- docs/n8n/customer_feedback_workflow_tests.md
+- docs/n8n/inventory_update_workflow_tests.md
+
+These test documents cover:
+
+successful requests
+unauthorized requests
+validation-error requests
+PostgreSQL verification queries
+workflow execution log verification
+
+This folder stores exported workflow JSON files. The **detailed test instructions live in `docs/n8n`** so workflow exports and workflow documentation remain separated.
+
+---
+
+
 ## Secret-Safety Checks
 
 Do not commit real local secrets in exported workflow JSON or folder documentation.
@@ -149,6 +169,7 @@ Real `.env` values and local credentials should stay outside Git.
 Customer feedback workflow documentation:
 
 ```text
+docs/n8n/customer_feedback_workflow_tests.md
 docs/n8n/webhook_customer_feedback_ingestion.md
 docs/n8n/webhook_security_and_production_activation.md
 docs/n8n/workflow_execution_logging.md
@@ -159,4 +180,5 @@ Inventory update workflow documentation:
 
 ```text
 docs/n8n/inventory_update_workflow.md
+docs/n8n/inventory_update_workflow_tests.md
 ```
